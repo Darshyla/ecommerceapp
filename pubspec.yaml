@@ -36,7 +36,6 @@ dev_dependencies:
 
 flutter:
   assets:
-    - assets/cartList.json
     - assets/images/paypal.png
     - assets/images/MasterCard_Logo.svg.png
     - assets/images/moncash.png

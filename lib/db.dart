@@ -51,17 +51,7 @@ class FavoriteProduct {
   }
 }
 
-Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-  if (oldVersion < 2) {
-    await db.execute('''
-      CREATE TABLE produits_aimes (
-        id INTEGER PRIMARY KEY,
-        userId INTEGER,
-        productId INTEGER
-      )
-    ''');
-  }
-}
+
 
 Future<Database> database() async {
   final path = await getDatabasesPath();
@@ -84,12 +74,17 @@ Future<Database> database() async {
           quantity INTEGER
         )
       ''');
+       await db.execute('''
+      CREATE TABLE produits_aimes (
+        id INTEGER PRIMARY KEY,
+        userId INTEGER,
+        productId INTEGER
+      )
+    ''');
     },
-    onUpgrade: _onUpgrade,
-    version: 2,
+    version: 1,
   );
 }
-
 
 Future<void> insertCart(Cart cart) async {
   final Database db = await database();
@@ -106,15 +101,6 @@ Future<void> insertCartItem(CartItem cartItem) async {
     'cartitem',
     cartItem.toMap(),
     conflictAlgorithm: ConflictAlgorithm.replace,
-  );
-}
-
-Future<void> insertFavoriteProduct(FavoriteProduct favoriteProduct) async {
-  final Database db = await database();
-  await db.insert(
-  'produits_aimes',
-  favoriteProduct.toMap(),
-  conflictAlgorithm: ConflictAlgorithm.replace,
   );
 }
 

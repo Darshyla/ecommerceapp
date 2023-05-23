@@ -119,30 +119,44 @@ class Local{
     whereArgs: [userId],
     orderBy: 'date DESC',
   );
-
+  
   // Vérifier si l'utilisateur a des paniers
   if (cartsResult.isEmpty) {
     return []; // Retourner une liste vide si l'utilisateur n'a pas de panier
   }
+   await db.close();
+  // Récupérer les ID de chaque panier et ajouter chaque panier à une liste
+  final carts = cartsResult.map((cart) {
+    final cartId = cart['id'];
+    final userId = cart['userId'];
+    final paid = cart['paid'];
+    final date = cart['date'];
+    return {
+      'id': cartId,
+      'userId': userId,
+      'paid': paid,
+      'date': date,
+    };
+  }).toList();
 
-  // Récupérer les enregistrements cartitem pour chaque panier de l'utilisateur
-  List<Map<String, dynamic>> carts = [];
-  for (final cart in cartsResult) {
-    final cartItems = await db.query(
-      'cartitem',
-      where: 'cartId = ?',
-      whereArgs: [cart['id']],
-    );
-    carts.add({
-      'cart': cart,
-      'cartItems': cartItems,
-    });
-  }
-
-  await db.close();
+ 
 
   return carts;
 }
+
+
+  static Future<void> deleteAllCarts() async {
+  final db = await database();
+
+  // Supprimer tous les enregistrements de la table 'cart'
+  await db.delete('cart');
+
+  // Supprimer tous les enregistrements de la table 'cartitem'
+  await db.delete('cartitem');
+
+  await db.close();
+}
+
 
   static Future<List<Map<String, dynamic>>> getCartItemsById(int cartId) async {
   final db = await database();
@@ -221,17 +235,6 @@ final cartId = await db.insert('cart', newCart);
   await db.close();
 }
   
-  static Future<List<Map<String, dynamic>>> getFavoriteProductsByUser(int userId) async {
-  final Database db = await database();
-  final List<Map<String, dynamic>> maps = await db.query(
-    'produits_aimes',
-    where: 'userId = ?',
-    whereArgs: [userId],
-  );
-  return maps;
-}
-
-
   static Future<void> deleteFavoriteProductByUser(int userId, int productId) async {
   final Database db = await database();
   await db.delete(
@@ -282,7 +285,55 @@ final cartId = await db.insert('cart', newCart);
   // Fermer la connexion à la base de données
   await db.close();
 }
+
+  static Future<List<Map<String, dynamic>>> insertFavoriteProduct(int userId, int productId) async {
+  final Database db = await database();
+  final Map<String, dynamic> row = {
+    'userId': userId,
+    'productId': productId,
+  };
+  await db.insert(
+    'produits_aimes',
+    row,
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
+  return db.query('produits_aimes');
 }
+
+ static Future<List<int>> getFavoritebyUser(int userId) async {
+  final Database db = await database();
+  final List<Map<String, dynamic>> results = await db.query(
+    'produits_aimes',
+    columns: ['productId'],
+    where: 'userId = ?',
+    whereArgs: [userId],
+  );
+
+  return results.map<int>((row) => row['productId'] as int).toList();
+}
+
+  static Future<List<Map<String, dynamic>>> getFavoriteProductsByUser(int userId) async {
+  final Database db = await database();
+  final List<Map<String, dynamic>> maps = await db.query(
+    'produits_aimes',
+    where: 'userId = ?',
+    whereArgs: [userId],
+  );
+  return maps;
+}
+
+  static Future<void> deleteAllFavoriteProductsByUser(int userId) async {
+  final Database db = await database();
+  await db.delete(
+    'produits_aimes',
+    where: 'userId = ?',
+    whereArgs: [userId],
+  );
+}
+
+
+}
+
 
 
 

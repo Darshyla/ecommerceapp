@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
+import 'Models/product.dart';
 
 
 class ApiService {
@@ -16,7 +17,7 @@ class ApiService {
     }
   }
 
-  static Future<List<dynamic>> getProductinCat(String catTitle) async {
+   static Future<List<dynamic>> getProductinCat(String catTitle) async {
   final response =await http.get(Uri.parse('$apiUrl/products/category/$catTitle'));
 
   if (response.statusCode == 200) {
@@ -97,7 +98,16 @@ class ApiService {
     return userCarts;
 }
 
+  //   static Future<List<Product>> getProducts() async {
+//   final response = await http.get(Uri.parse('$apiUrl/products'));
+//   if (response.statusCode == 200) {
+//       final List<dynamic> productsData = jsonDecode(response.body);
+//       return productsData.map((data) => Product.fromJson(data)).toList();
+//     } else {
+//       throw Exception('Failed to load products');
+//     }
   
+// }
   
 }
 
